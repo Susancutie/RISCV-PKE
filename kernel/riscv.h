@@ -52,7 +52,7 @@
 #define CAUSE_LOAD_PAGE_FAULT 0xd      // Load page fault
 #define CAUSE_STORE_PAGE_FAULT 0xf     // Store/AMO page fault
 
-// irqs (interrupts). added @lab1_3
+// irqs (interrupts)
 #define CAUSE_MTIMER 0x8000000000000007
 #define CAUSE_MTIMER_S_TRAP 0x8000000000000001
 
@@ -147,7 +147,7 @@ static inline uint64 read_tp(void) {
 // write tp, the thread pointer, holding hartid (core number), the index into cpus[].
 static inline void write_tp(uint64 x) { asm volatile("mv tp, %0" : : "r"(x)); }
 
-typedef struct riscv_regs_t {
+typedef struct riscv_regs {
   /*  0  */ uint64 ra;
   /*  8  */ uint64 sp;
   /*  16 */ uint64 gp;

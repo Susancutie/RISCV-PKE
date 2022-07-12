@@ -49,3 +49,11 @@ int printu(const char* s, ...) {
 int exit(int code) {
   return do_user_call(SYS_user_exit, code, 0, 0, 0, 0, 0, 0); 
 }
+
+//
+// added for lab1_challenge1_backtrace.
+// protype definition for print_backtrace().
+//
+int print_backtrace(int depth) {
+  return do_user_call(SYS_user_backtrace, depth, 0, 0, 0, 0, 0, 0);
+}

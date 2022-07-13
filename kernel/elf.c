@@ -139,6 +139,7 @@ void load_bincode_from_host_elf(struct process *p) {
 }
 
 //用于向内存中加载符号表和字符串列表
+//通过elf头得到第一个节头的位置，然后遍历节头。根据节头中存储的节类型以及地址偏移得到符号表以及字符串列表，将其存入ctx结构体中
 elf_status elf_load_symbol(elf_ctx *ctx) {
   elf_section_header sh;
   int i, off;

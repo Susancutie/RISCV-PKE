@@ -13,9 +13,7 @@ typedef struct elf_info_t {
   struct process *p;
 } elf_info;
 
-// added for lab1_challenge1_backtrace.
-// move original local variable "elf_ctx elfloader" from load_bincode_from_host_elf(),
-// to be global, as it will be used in kernel/syscall.c.
+
 elf_ctx g_elfloader;
 
 //
@@ -131,8 +129,7 @@ void load_bincode_from_host_elf(struct process *p) {
   // entry (virtual) address
   p->trapframe->epc = g_elfloader.ehdr.entry;
 
-  // added for lab1_challenge1_backtrace.
-  // load symbols from elf.
+//判断符号表和字符串表是否加载成功
   if (elf_load_symbol(&g_elfloader) != EL_OK) panic("fail to load elf symbols.\n");
 
   // close host file
@@ -141,10 +138,7 @@ void load_bincode_from_host_elf(struct process *p) {
   sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
 }
 
-//
-// added for lab1_challenge1_backtrace.
-// load the symbol table section into memory.
-//
+//用于向内存中加载符号表和字符串列表
 elf_status elf_load_symbol(elf_ctx *ctx) {
   elf_section_header sh;
   int i, off;

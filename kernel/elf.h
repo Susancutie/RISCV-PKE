@@ -54,8 +54,7 @@ typedef struct elf_prog_header_t {
 #define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
 #define ELF_PROG_LOAD 1
 
-// added for lab1_challenge1_backtrace.
-// macros used to parse symbol table.
+//用于区分节的类型以及符号的类型
 #define SHT_SYMTAB 2           /* Symbol table */
 #define SHT_STRTAB 3           /* String table */
 #define STT_FILE 4             /* Symbol's name is file name */
@@ -71,8 +70,7 @@ typedef enum elf_status_t {
 
 } elf_status;
 
-// added for lab1_challenge1_backtrace.
-// the symbol table record, each record stores information of a symbol
+//符号表数组的项，一项代表一个符号，记录了关于这个符号的信息
 typedef struct {
   // st_name is the offset in string table.
   uint32 st_name;         /* Symbol name (string tbl index) */
@@ -87,17 +85,13 @@ typedef struct elf_ctx_t {
   void *info;
   elf_header ehdr;
 
-  // following members are added for lab1_challenge1_backtrace.
-  // string table in elf: a sequence of strings which begins with '\0' are split by '\0'
-  // for example: '\0main\0f1\0f2\0'. we can access the string "main" with strtb[1].
-  // we assume in this challenge that the length of all strings will not exceed 4096
+//符号通过\0分隔，通过符号在字符串中的偏移确定符号
   char strtb[4096];  
 
-  // symbols: we assume that there are only 128 symbols at most.
-  // that is, you can access symbol name with strtb[syms[i].st_name]
+ //符号表
   elf_symbol_rec syms[128];   
 
-  // actual count of the symbols in source code.
+//符号的数量
   uint64 syms_count; 
 } elf_ctx;
 

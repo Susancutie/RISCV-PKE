@@ -14,7 +14,7 @@
 
 #include "spike_interface/spike_utils.h"
 
-// added for lab1_challenge1_backtrace.
+//外部定义的变量
 extern elf_ctx g_elfloader;
 
 //
@@ -35,13 +35,9 @@ ssize_t sys_user_exit(uint64 code) {
   shutdown(code);
 }
 
-//
-// added for lab1_challenge1_backtrace.
-// checks the symbol record according to input virtual address ra. returns the index in
-// g_elfloader.syms array for result symbol.
-// the checking is conducted by comparing the addresses in g_elfloader.syms array and
-// a given ra.
-//
+
+//根据输入的虚拟地址，返回在符号表中的索引
+//思路为遍历符号表，如果该符号代表一个函数，且该符号的value值比传入的返回地址低且距离最近，该符号即为对应函数的名字。
 int backtrace_symbol(uint64 ra) {
   uint64 closest_func = 0;
   int idx = -1;
@@ -55,36 +51,26 @@ int backtrace_symbol(uint64 ra) {
   return idx;
 }
 
-//
-// added for lab1_challenge1_backtrace.
-// the function first locates the stack of user app by current->trapframe->regs.sp, and
-// then back traces the function calls via the return addresses stored in the user stack.
-// Note: as we consider only functions with no parameters in this challenge, we jump for
-// exactly 16 bytes during the back tracing.
-//
+
+//通过当前trapframe的sp寄存器确定用户栈中print_backtrace()之前最先调用函数的栈帧地址，用来确定函数的返回地址，得到该返回地址后即可
+//通过backtrace_symbol函数确定函数符号在符号表的索引
 ssize_t sys_user_backtrace(int64 depth) {
-  // aquire the user stack, and bypass the latest call to print_backtrace().
-  // 16 means length of leaf function (i.e., print_backtrace)'s call stack frame, where 
-  // no return address is available, 8 means length of the margin space in previous 
-  // function's call stack frame.
+//确定f8（）函数的返回地址保存位置，这里print_backtrace()为函数调用的叶子结点，没有函数的返回地址
   uint64 user_sp = current->trapframe->regs.sp + 16 + 8;
 
-  // back trace user stack, lookup the symbol names of the return addresses.
-  // Note: by priciple, we should traverse the stack via "fp" here. However, as we
-  // consider the simple case where functions in the path have NO parameters, we can do
-  // it by simply bypassing 16 bytes at each depth.
-  // the traverse direction is from lower addresses to higher addressese.
+
+  //从低地址到高地址遍历，因为函数可以简化为不带参数的函数，所以每个函数的栈帧只占16个字节。每次向前遍历16个字节。遍历次数为深度，或者如果提前遇到用户栈栈底就停止。
   int64 actual_depth=0;
   for (uint64 p = user_sp; actual_depth<depth; ++actual_depth, p += 16) {
-    // the return address is stored in (uint64*)p
+   // (uint64*)p 存储了函数的返回地址
     if (*(uint64*)p == 0) break; // end of user stack?
-    // look up the symbol name of the given return address
+ //根据返回地址查找对应的符号（遍历符号表）
     int symbol_idx = backtrace_symbol(*(uint64*)p);
     if (symbol_idx == -1) {
       sprint("fail to backtrace symbol %lx\n", *(uint64*)p);
       continue;
     }
-    // print the function name.
+ //打印函数名称，根据符号表索引获得在字符串的偏移，然后获得该符号
     sprint("%s\n", &g_elfloader.strtb[g_elfloader.syms[symbol_idx].st_name]);
   }
 
